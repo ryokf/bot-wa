@@ -1,4 +1,4 @@
-const { replyHumanlike } = require('../utils/helpers');
+import { replyHumanlike } from '../utils/helpers.js';
 
 /**
  * Command: halo bot
@@ -12,4 +12,4 @@ const greetingCommand = async (message, client) => {
     await replyHumanlike(message, client, 'Halo juga! Ada yang bisa saya bantu?', false);
 };
 
-module.exports = greetingCommand;
+export default greetingCommand;

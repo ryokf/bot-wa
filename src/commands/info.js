@@ -1,4 +1,4 @@
-const { replyHumanlike } = require('../utils/helpers');
+import { replyHumanlike } from '../utils/helpers.js';
 
 /**
  * Command: !info
@@ -25,4 +25,4 @@ Jumlah Peserta: ${ chat.participants.length }
     }
 };
 
-module.exports = infoCommand;
+export default infoCommand;

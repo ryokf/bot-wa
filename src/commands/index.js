@@ -2,11 +2,11 @@
  * Central export untuk semua commands
  * Memudahkan import di message handler
  */
-const pingCommand = require('./ping');
-const greetingCommand = require('./greeting');
-const infoCommand = require('./info');
+import pingCommand from './ping.js';
+import greetingCommand from './greeting.js';
+import infoCommand from './info.js';
 
-module.exports = {
+export {
     pingCommand,
     greetingCommand,
     infoCommand

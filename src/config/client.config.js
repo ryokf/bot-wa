@@ -1,5 +1,8 @@
-require('dotenv').config();
-const { Client, LocalAuth } = require('whatsapp-web.js');
+import dotenv from 'dotenv';
+import pkg from 'whatsapp-web.js';
+const { Client, LocalAuth } = pkg;
+
+dotenv.config();
 
 /**
  * Konfigurasi WhatsApp Client dengan fitur Anti-Ban
@@ -26,8 +29,8 @@ const clientConfig = {
  * Factory function untuk membuat instance WhatsApp Client
  * @returns {Client} Instance WhatsApp Client yang sudah dikonfigurasi
  */
-const createClient = () => {
+export const createClient = () => {
     return new Client(clientConfig);
 };
 
-module.exports = { createClient, clientConfig };
+export { clientConfig };

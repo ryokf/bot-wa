@@ -1,4 +1,4 @@
-const { pingCommand, greetingCommand, infoCommand } = require('../commands');
+import { pingCommand, greetingCommand, infoCommand } from '../commands/index.js';
 
 /**
  * Message Handler
@@ -26,4 +26,4 @@ const handleMessage = async (message, client) => {
     // Tambahkan command lain di sini sesuai kebutuhan
 };
 
-module.exports = handleMessage;
+export default handleMessage;

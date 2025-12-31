@@ -1,4 +1,4 @@
-const { replyHumanlike } = require('../utils/helpers');
+import { replyHumanlike } from '../utils/helpers.js';
 
 /**
  * Command: !ping
@@ -11,4 +11,4 @@ const pingCommand = async (message, client) => {
     await replyHumanlike(message, client, 'Pong! 🏓');
 };
 
-module.exports = pingCommand;
+export default pingCommand;

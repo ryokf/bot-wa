@@ -7,7 +7,7 @@
  * @param {number} max - Maximum delay dalam milidetik (default dari .env)
  * @returns {Promise} Promise yang resolve setelah delay acak
  */
-const randomDelay = (min = null, max = null) => {
+export const randomDelay = (min = null, max = null) => {
     const minDelay = min || parseInt(process.env.MIN_DELAY) || 1500;
     const maxDelay = max || parseInt(process.env.MAX_DELAY) || 4000;
     return new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay)));
@@ -23,7 +23,7 @@ const randomDelay = (min = null, max = null) => {
  * @param {string} textResponse - Teks yang akan dikirim
  * @param {boolean} isReply - True untuk reply, false untuk send message biasa
  */
-const replyHumanlike = async (message, client, textResponse, isReply = true) => {
+export const replyHumanlike = async (message, client, textResponse, isReply = true) => {
     try {
         const chat = await message.getChat();
 
@@ -47,5 +47,3 @@ const replyHumanlike = async (message, client, textResponse, isReply = true) => 
         console.error('Gagal mengirim pesan:', error);
     }
 };
-
-module.exports = { randomDelay, replyHumanlike };

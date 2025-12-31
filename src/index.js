@@ -1,6 +1,7 @@
-const qrcode = require('qrcode-terminal');
-const { createClient } = require('./config/client.config');
-const handleMessage = require('./handlers/messageHandler');
+import qrcode from 'qrcode-terminal';
+import { createClient } from './config/client.config.js';
+import handleMessage from './handlers/messageHandler.js';
+import gemini from './config/gemini.config.js';
 
 // Buat instance WhatsApp Client
 const client = createClient();
