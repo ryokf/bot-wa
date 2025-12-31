@@ -2,6 +2,11 @@ import qrcode from 'qrcode-terminal';
 import { createClient } from './config/client.config.js';
 import handleMessage from './handlers/messageHandler.js';
 import gemini from './config/gemini.config.js';
+import supabase from './config/supabase.config.js';
+
+gemini()
+
+console.log(supabase)
 
 // Buat instance WhatsApp Client
 const client = createClient();
