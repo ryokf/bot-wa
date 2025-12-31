@@ -103,7 +103,7 @@ const gemini = async (prompt = "who are you?") => {
     try {
         const fullPrompt = `${ SYSTEM_INSTRUCTION_ADMIN }\n\nPERTANYAAN/DATA:\n${ prompt }`;
         const response = await ai.models.generateContent({
-            model: "gemini-2.0-flash-exp",
+            model: "gemini-2.5-flash",
             contents: fullPrompt,
         });
         return response.text;
