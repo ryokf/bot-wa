@@ -32,7 +32,7 @@ DATA CUSTOMER (JSON):
 ${ JSON.stringify(customerData, null, 2) }
 
 PERTANYAAN:
-Siapa saja customer yang belum membayar tagihan? Berikan analisis lengkap dengan rekomendasi tindakan.
+pada bulan apa pemakaian air terbanyak?
 `
 
 console.log('=== PROMPT YANG DIKIRIM KE GEMINI ===')

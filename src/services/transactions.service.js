@@ -1,18 +1,21 @@
 import supabase from '../config/supabase.config.js';
 
 /**
- * TRANSACTIONS SERVICE
- * Menyediakan fungsi-fungsi untuk mengakses data transaksi keuangan
+ * TRANSACTIONS SERVICE (REFACTORED)
+ * Hanya fetch data mentah - AI yang akan menghitung
  */
 
 /**
- * Tool 12: Get Recent Transactions
- * Mendapatkan transaksi terbaru
- * @param {number} limit - Jumlah data yang diambil (default: 10)
- * @returns {Promise<Array>} Array of transactions
+ * Fetch Transactions (Raw Data)
+ * Mengambil data transaksi mentah berdasarkan rentang waktu
+ * AI akan melakukan semua perhitungan (sum, avg, max, min, group by, dll)
+ * 
+ * @param {string} startDate - Format: YYYY-MM-DD (optional)
+ * @param {string} endDate - Format: YYYY-MM-DD (optional)
+ * @returns {Promise<Array>} Raw transaction data
  */
-export const getRecentTransactions = async (limit = 10) => {
-    const { data, error } = await supabase
+export const fetchTransactions = async (startDate = null, endDate = null) => {
+    let query = supabase
         .from('transactions')
         .select(`
             id,
@@ -21,27 +24,16 @@ export const getRecentTransactions = async (limit = 10) => {
             amount,
             description,
             transaction_date,
-            customer:customers(name)
+            created_at,
+            customer:customers(
+                id,
+                name,
+                phone
+            )
         `)
-        .order('transaction_date', { ascending: false })
-        .limit(limit);
+        .order('transaction_date', { ascending: false });
 
-    if (error) throw error;
-    return data || [];
-};
-
-/**
- * Tool 13: Get Financial Summary
- * Mendapatkan ringkasan keuangan (pemasukan vs pengeluaran)
- * @param {string} startDate - Format: YYYY-MM-DD (optional)
- * @param {string} endDate - Format: YYYY-MM-DD (optional)
- * @returns {Promise<Object>} Financial summary
- */
-export const getFinancialSummary = async (startDate = null, endDate = null) => {
-    let query = supabase
-        .from('transactions')
-        .select('type, amount, category, transaction_date');
-
+    // Apply date filters if provided
     if (startDate) {
         query = query.gte('transaction_date', startDate);
     }
@@ -52,51 +44,21 @@ export const getFinancialSummary = async (startDate = null, endDate = null) => {
     const { data, error } = await query;
 
     if (error) throw error;
-
-    const summary = {
-        period: startDate && endDate ? `${ startDate } to ${ endDate }` : 'All Time',
-        total_income: data.filter(t => t.type === 'IN').reduce((sum, t) => sum + Number(t.amount), 0),
-        total_expense: data.filter(t => t.type === 'OUT').reduce((sum, t) => sum + Number(t.amount), 0),
-        net_balance: 0,
-        income_by_category: {},
-        expense_by_category: {}
-    };
-
-    summary.net_balance = summary.total_income - summary.total_expense;
-
-    // Group by category
-    data.forEach(trans => {
-        const category = trans.category || 'Uncategorized';
-        if (trans.type === 'IN') {
-            if (!summary.income_by_category[category]) {
-                summary.income_by_category[category] = 0;
-            }
-            summary.income_by_category[category] += Number(trans.amount);
-        } else {
-            if (!summary.expense_by_category[category]) {
-                summary.expense_by_category[category] = 0;
-            }
-            summary.expense_by_category[category] += Number(trans.amount);
-        }
-    });
-
-    return summary;
+    return data || [];
 };
 
 /**
- * Tool 14: Get Transactions by Type
- * Mendapatkan transaksi berdasarkan tipe (IN/OUT)
- * @param {string} type - 'IN' | 'OUT'
- * @param {number} limit - Jumlah data yang diambil (default: 20)
- * @returns {Promise<Array>} Array of transactions
+ * Fetch All Transactions
+ * Mengambil SEMUA transaksi tanpa filter
+ * Gunakan dengan hati-hati untuk dataset besar
+ * 
+ * @returns {Promise<Array>} All transaction data
  */
-export const getTransactionsByType = async (type, limit = 20) => {
+export const fetchAllTransactions = async () => {
     const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('type', type)
-        .order('transaction_date', { ascending: false })
-        .limit(limit);
+        .order('transaction_date', { ascending: false });
 
     if (error) throw error;
     return data || [];

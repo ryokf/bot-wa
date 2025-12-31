@@ -1,47 +1,20 @@
 import supabase from '../config/supabase.config.js';
 
 /**
- * COMPLAINTS SERVICE
- * Menyediakan fungsi-fungsi untuk mengakses data keluhan pelanggan
+ * COMPLAINTS SERVICE (REFACTORED)
+ * Hanya fetch data mentah - AI yang akan menghitung
  */
 
 /**
- * Tool 9: Get Open Complaints
- * Mendapatkan daftar keluhan yang belum diselesaikan
- * @returns {Promise<Array>} Array of open complaints
+ * Fetch Complaints (Raw Data)
+ * Mengambil data keluhan berdasarkan status
+ * AI akan melakukan analisis: count by status, by type, trend, dll
+ * 
+ * @param {string} status - 'Open' | 'In Progress' | 'Resolved' | null (all)
+ * @returns {Promise<Array>} Raw complaint data
  */
-export const getOpenComplaints = async () => {
-    const { data, error } = await supabase
-        .from('complaints')
-        .select(`
-            id,
-            type,
-            description,
-            status,
-            reported_at,
-            technician_notes,
-            customer:customers(
-                id,
-                name,
-                phone,
-                address
-            )
-        `)
-        .in('status', ['Open', 'In Progress'])
-        .order('reported_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-};
-
-/**
- * Tool 10: Get All Complaints
- * Mendapatkan semua keluhan (termasuk yang sudah resolved)
- * @param {number} limit - Jumlah data yang diambil (default: 20)
- * @returns {Promise<Array>} Array of complaints
- */
-export const getAllComplaints = async (limit = 20) => {
-    const { data, error } = await supabase
+export const fetchComplaints = async (status = null) => {
+    let query = supabase
         .from('complaints')
         .select(`
             id,
@@ -50,42 +23,42 @@ export const getAllComplaints = async (limit = 20) => {
             status,
             reported_at,
             resolved_at,
-            customer:customers(name, phone)
+            technician_notes,
+            customer:customers(
+                id,
+                name,
+                phone,
+                address
+            )
         `)
-        .order('reported_at', { ascending: false })
-        .limit(limit);
+        .order('reported_at', { ascending: false });
+
+    // Apply status filter if provided
+    if (status) {
+        query = query.eq('status', status);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data || [];
 };
 
 /**
- * Tool 11: Get Complaints Summary
- * Mendapatkan ringkasan keluhan berdasarkan status
- * @returns {Promise<Object>} Summary object
+ * Fetch All Complaints
+ * Mengambil SEMUA keluhan
+ * 
+ * @returns {Promise<Array>} All complaint data
  */
-export const getComplaintsSummary = async () => {
+export const fetchAllComplaints = async () => {
     const { data, error } = await supabase
         .from('complaints')
-        .select('status, type');
+        .select(`
+            *,
+            customer:customers(name, phone, address)
+        `)
+        .order('reported_at', { ascending: false });
 
     if (error) throw error;
-
-    const summary = {
-        total: data.length,
-        open: data.filter(c => c.status === 'Open').length,
-        in_progress: data.filter(c => c.status === 'In Progress').length,
-        resolved: data.filter(c => c.status === 'Resolved').length,
-        by_type: {}
-    };
-
-    // Group by type
-    data.forEach(complaint => {
-        if (!summary.by_type[complaint.type]) {
-            summary.by_type[complaint.type] = 0;
-        }
-        summary.by_type[complaint.type]++;
-    });
-
-    return summary;
+    return data || [];
 };
