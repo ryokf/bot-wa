@@ -4,13 +4,28 @@ import gemini from '../config/gemini.config.js';
 import { replyHumanlike } from '../utils/helpers.js';
 
 /**
- * ADMIN COMMAND
- * AI-powered assistant untuk admin
- * Menggunakan function calling untuk menjawab pertanyaan dengan data real-time
+ * ADMIN COMMAND (PERSONAL ASSISTANT MODE)
+ * AI-powered assistant untuk admin - merespons langsung tanpa prefix
+ * Dengan smart filtering untuk menghindari respons pada pesan pendek
  */
 
 const adminCommand = async (message, client) => {
-    const userMessage = message.body;
+    // Ambil pesan mentah (tanpa potong prefix)
+    const userMessage = message.body.trim();
+
+    // ===== FILTER 1: IGNORE PESAN PENDEK (Basa-basi) =====
+    // Abaikan pesan < 4 karakter (misal: "Ok", "Y", "Wkwk", "Siap")
+    if (userMessage.length < 4) {
+        console.log('[Filter] Message too short, ignoring:', userMessage);
+        return;
+    }
+
+    // ===== FILTER 2: IGNORE COMMON SHORT REPLIES =====
+    const ignoredPhrases = ['ok', 'oke', 'siap', 'baik', 'ya', 'tidak', 'gak', 'nggak'];
+    if (ignoredPhrases.includes(userMessage.toLowerCase())) {
+        console.log('[Filter] Common short reply, ignoring:', userMessage);
+        return;
+    }
 
     try {
         // Step 1: Route to function (AI memilih tool yang tepat)
@@ -31,6 +46,15 @@ const adminCommand = async (message, client) => {
             // Casual chat, no database access needed
             console.log('[AI] No tool needed, responding with casual chat');
             const response = await gemini(userMessage);
+
+            // Null check untuk API error
+            if (!response) {
+                await replyHumanlike(message, client,
+                    'Maaf, AI sedang tidak tersedia. Silakan coba lagi nanti.'
+                );
+                return;
+            }
+
             await replyHumanlike(message, client, response);
             return;
         }
@@ -60,6 +84,14 @@ Berikan insight atau rekomendasi jika relevan.
         console.log('[AI] Generating final response with context');
         const response = await gemini(finalPrompt);
 
+        // Null check
+        if (!response) {
+            await replyHumanlike(message, client,
+                'Maaf, AI sedang tidak tersedia. Silakan coba lagi nanti.'
+            );
+            return;
+        }
+
         // Step 5: Send response
         await replyHumanlike(message, client, response);
         console.log('[AI] Response sent successfully');
@@ -75,3 +107,4 @@ Berikan insight atau rekomendasi jika relevan.
 };
 
 export default adminCommand;
+

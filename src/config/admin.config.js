@@ -18,7 +18,8 @@ export const ADMIN_PHONE_NUMBERS = [
     // Contoh: '6281234567890@c.us',
 
     // TEMPORARY: Allow all for testing (REMOVE IN PRODUCTION!)
-    // '*' // Uncomment this to allow all users (NOT RECOMMENDED)
+    '*' // Uncomment this to allow all users (NOT RECOMMENDED)
+    // '6289647767389@c.us',
 ];
 
 /**
