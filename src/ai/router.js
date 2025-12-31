@@ -2,9 +2,9 @@ import gemini from '../config/gemini.config.js';
 import { FUNCTION_SCHEMAS } from './function.schemas.js';
 
 /**
- * AI ROUTER
+ * AI ROUTER (WITH TIME CONTEXT)
  * Menentukan tool mana yang harus digunakan berdasarkan pertanyaan user
- * Menggunakan Gemini AI untuk memilih fungsi yang tepat
+ * Menggunakan Gemini AI dengan konteks waktu saat ini
  */
 
 /**
@@ -13,8 +13,21 @@ import { FUNCTION_SCHEMAS } from './function.schemas.js';
  * @returns {Promise<Object>} Routing decision { needsTool, toolName, params }
  */
 export const routeToFunction = async (userMessage) => {
+    // Get current date for context
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1-12
+    const currentDay = now.getDate();
+
     const prompt = `
 Kamu adalah AI Router untuk sistem bisnis air bersih.
+
+INFORMASI WAKTU SAAT INI:
+- Tanggal hari ini: ${ currentDate }
+- Tahun: ${ currentYear }
+- Bulan: ${ currentMonth }
+- Hari: ${ currentDay }
 
 TOOLS YANG TERSEDIA:
 ${ JSON.stringify(FUNCTION_SCHEMAS, null, 2) }
@@ -33,9 +46,18 @@ INSTRUKSI:
    a. Pilih tool yang PALING SESUAI dari daftar di atas
    b. Extract parameter yang dibutuhkan:
       - Untuk pertanyaan tentang waktu, tentukan startDate dan endDate
-      - Jika user bilang "bulan ini", hitung tanggal awal & akhir bulan ini
-      - Jika user bilang "tahun ini", hitung tanggal awal tahun sampai hari ini
-      - Jika tidak disebutkan waktu, gunakan default (1 tahun terakhir)
+      - Jika user bilang "bulan ini", gunakan:
+        startDate = "${ currentYear }-${ String(currentMonth).padStart(2, '0') }-01"
+        endDate = "${ currentDate }"
+      - Jika user bilang "tahun ini", gunakan:
+        startDate = "${ currentYear }-01-01"
+        endDate = "${ currentDate }"
+      - Jika user bilang bulan tertentu (misal "Januari"), gunakan tahun ini:
+        startDate = "${ currentYear }-01-01"
+        endDate = "${ currentYear }-01-31"
+      - Jika tidak disebutkan waktu, gunakan 1 tahun terakhir:
+        startDate = "${ currentYear - 1 }-${ String(currentMonth).padStart(2, '0') }-${ String(currentDay).padStart(2, '0') }"
+        endDate = "${ currentDate }"
    
    Return: { "needsTool": true, "toolName": "nama_tool", "params": { ... } }
 
@@ -48,22 +70,30 @@ Pertanyaan: "Siapa aja yang nunggak?"
 Response: { "needsTool": true, "toolName": "fetch_invoices", "params": { "status": "Unpaid" } }
 
 Pertanyaan: "Berapa total pemasukan bulan ini?"
-Response: { "needsTool": true, "toolName": "fetch_transactions", "params": { "startDate": "2025-12-01", "endDate": "2025-12-31" } }
+Response: { "needsTool": true, "toolName": "fetch_transactions", "params": { "startDate": "${ currentYear }-${ String(currentMonth).padStart(2, '0') }-01", "endDate": "${ currentDate }" } }
 
 Pertanyaan: "Bulan apa paling boros air tahun ini?"
-Response: { "needsTool": true, "toolName": "fetch_readings", "params": { "startDate": "2025-01-01", "endDate": "2025-12-31" } }
+Response: { "needsTool": true, "toolName": "fetch_readings", "params": { "startDate": "${ currentYear }-01-01", "endDate": "${ currentDate }" } }
 
 PENTING:
 - Response HARUS dalam format JSON yang valid
 - Jangan tambahkan penjelasan di luar JSON
 - Untuk tanggal, gunakan format YYYY-MM-DD
-- Jika ragu tentang waktu, gunakan 1 tahun terakhir sebagai default
+- Gunakan informasi waktu saat ini untuk menghitung rentang tanggal yang akurat
 
 RESPONSE (JSON only):
 `;
 
     try {
         const response = await gemini(prompt);
+
+        // Handle null response (API error)
+        if (!response) {
+            return {
+                needsTool: false,
+                error: 'Gemini API returned null (quota exceeded or error)'
+            };
+        }
 
         // Clean response (remove markdown code blocks if any)
         let cleanResponse = response.trim();

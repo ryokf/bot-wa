@@ -101,9 +101,32 @@ AI:
 
 const gemini = async (prompt = "who are you?") => {
     try {
-        const fullPrompt = `${ SYSTEM_INSTRUCTION_ADMIN }\n\nPERTANYAAN/DATA:\n${ prompt }`;
+        // Get current date/time for context
+        const now = new Date();
+        const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        const currentDateTime = now.toLocaleString('id-ID', {
+            timeZone: 'Asia/Jakarta',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const timeContext = `
+KONTEKS WAKTU SAAT INI:
+- Tanggal: ${ currentDateTime }
+- Format ISO: ${ currentDate }
+- Tahun: ${ now.getFullYear() }
+- Bulan: ${ now.getMonth() + 1 }
+- Hari: ${ now.getDate() }
+
+PENTING: Gunakan informasi waktu ini untuk menghitung rentang tanggal yang tepat.
+`;
+
+        const fullPrompt = `${ SYSTEM_INSTRUCTION_ADMIN }\n\n${ timeContext }\n\nPERTANYAAN/DATA:\n${ prompt }`;
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-2.0-flash-exp",
             contents: fullPrompt,
         });
         return response.text;
