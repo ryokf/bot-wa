@@ -126,7 +126,7 @@ PENTING: Gunakan informasi waktu ini untuk menghitung rentang tanggal yang tepat
 
         const fullPrompt = `${ SYSTEM_INSTRUCTION_ADMIN }\n\n${ timeContext }\n\nPERTANYAAN/DATA:\n${ prompt }`;
         const response = await ai.models.generateContent({
-            model: "gemini-2.0-flash-exp",
+            model: "gemini-2.5-flash",
             contents: fullPrompt,
         });
         return response.text;
