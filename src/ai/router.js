@@ -25,28 +25,39 @@ PERTANYAAN USER:
 INSTRUKSI:
 1. Analisis pertanyaan user dengan cermat
 2. Tentukan apakah pertanyaan ini membutuhkan data dari database atau tidak
+
 3. Jika TIDAK butuh data (misal: sapaan, terima kasih, obrolan biasa):
    Return: { "needsTool": false }
    
 4. Jika BUTUH data dari database:
-   - Pilih tool yang PALING SESUAI dari daftar di atas
-   - Extract parameter yang dibutuhkan dari pertanyaan user
-   Return: { "needsTool": true, "toolName": "nama_tool", "params": {} }
+   a. Pilih tool yang PALING SESUAI dari daftar di atas
+   b. Extract parameter yang dibutuhkan:
+      - Untuk pertanyaan tentang waktu, tentukan startDate dan endDate
+      - Jika user bilang "bulan ini", hitung tanggal awal & akhir bulan ini
+      - Jika user bilang "tahun ini", hitung tanggal awal tahun sampai hari ini
+      - Jika tidak disebutkan waktu, gunakan default (1 tahun terakhir)
+   
+   Return: { "needsTool": true, "toolName": "nama_tool", "params": { ... } }
 
 CONTOH RESPONSE:
+
 Pertanyaan: "Halo, apa kabar?"
 Response: { "needsTool": false }
 
-Pertanyaan: "Siapa aja yang nunggak bulan ini?"
-Response: { "needsTool": true, "toolName": "get_unpaid_invoices", "params": {} }
+Pertanyaan: "Siapa aja yang nunggak?"
+Response: { "needsTool": true, "toolName": "fetch_invoices", "params": { "status": "Unpaid" } }
 
-Pertanyaan: "Berapa total pemasukan bulan Januari 2025?"
-Response: { "needsTool": true, "toolName": "get_invoice_summary", "params": { "period": "Januari 2025" } }
+Pertanyaan: "Berapa total pemasukan bulan ini?"
+Response: { "needsTool": true, "toolName": "fetch_transactions", "params": { "startDate": "2025-12-01", "endDate": "2025-12-31" } }
+
+Pertanyaan: "Bulan apa paling boros air tahun ini?"
+Response: { "needsTool": true, "toolName": "fetch_readings", "params": { "startDate": "2025-01-01", "endDate": "2025-12-31" } }
 
 PENTING:
 - Response HARUS dalam format JSON yang valid
 - Jangan tambahkan penjelasan di luar JSON
-- Jika ragu, lebih baik set needsTool: true
+- Untuk tanggal, gunakan format YYYY-MM-DD
+- Jika ragu tentang waktu, gunakan 1 tahun terakhir sebagai default
 
 RESPONSE (JSON only):
 `;
