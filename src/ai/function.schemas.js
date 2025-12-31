@@ -1,128 +1,218 @@
 /**
- * FUNCTION SCHEMAS (WITH FORECASTING SUPPORT)
- * Simplified catalog - AI melakukan semua perhitungan dari data mentah
- * Mendukung analisis tren dan proyeksi masa depan
+ * FUNCTION SCHEMAS (MICRO vs MACRO SEPARATION)
+ * Micro Tools: Detail, short-term, specific (max 100 rows)
+ * Macro Tools: Summary, trends, predictions (aggregated data)
  */
 
 export const FUNCTION_SCHEMAS = [
-    // ===== TRANSACTIONS (Keuangan) =====
-    {
-        name: 'fetch_transactions',
-        description: `Mengambil data transaksi keuangan MENTAH. 
-        
-Gunakan ini untuk SEMUA pertanyaan tentang keuangan:
-- Total pemasukan/pengeluaran
-- Bulan dengan pemasukan/pengeluaran tertinggi/terendah
-- Rata-rata transaksi
-- Trend keuangan dan analisis pola
-- Kategori pengeluaran terbesar
-- Profit/loss
-- PREDIKSI/PROYEKSI pendapatan masa depan (ambil data historis 1-2 tahun untuk analisis tren)
-- Ramalan keuangan tahun depan
-- Dan pertanyaan analitis lainnya
+    // ========== MACRO TOOLS (SUMMARY - FOR TRENDS & PREDICTIONS) ==========
 
-AI HARUS menghitung sendiri dari data mentah (SUM, AVG, MAX, MIN, GROUP BY, dll).
-Untuk prediksi masa depan, gunakan data historis sebagai bahan analisis tren.`,
+    {
+        name: 'fetch_transactions_summary',
+        description: `⭐ WAJIB gunakan untuk TREN, ANALISIS, dan PREDIKSI keuangan!
+
+Mengambil ringkasan transaksi per BULAN (data sudah diagregasi di database).
+
+WAJIB gunakan untuk:
+- Pertanyaan tentang TREN keuangan (naik/turun)
+- PREDIKSI/PROYEKSI/RAMALAN pendapatan masa depan
+- Analisis jangka panjang (> 1 bulan)
+- Perbandingan antar bulan/tahun
+- Pertanyaan: "bulan apa", "tahun apa", "trend", "proyeksi"
+
+Data yang dikembalikan: 12-24 rows (sangat ringan!)
+Contoh: Total pemasukan per bulan, rata-rata pengeluaran, net balance
+
+JANGAN gunakan fetch_transactions_detail untuk pertanyaan ini!`,
         parameters: {
             type: 'object',
             properties: {
                 startDate: {
                     type: 'string',
-                    description: 'Tanggal mulai format YYYY-MM-DD. Untuk prediksi, ambil 1-2 tahun historis.'
+                    description: 'Tanggal mulai YYYY-MM-DD. Untuk prediksi, ambil 1-2 tahun historis.'
                 },
                 endDate: {
                     type: 'string',
-                    description: 'Tanggal akhir format YYYY-MM-DD. Default: hari ini.'
+                    description: 'Tanggal akhir YYYY-MM-DD. Default: hari ini.'
                 }
             },
             required: []
         }
     },
 
-    // ===== METER READINGS (Pemakaian Air) =====
     {
-        name: 'fetch_readings',
-        description: `Mengambil data pencatatan meteran air MENTAH.
+        name: 'fetch_readings_summary',
+        description: `⭐ WAJIB gunakan untuk TREN, ANALISIS, dan PREDIKSI pemakaian air!
 
-Gunakan ini untuk SEMUA pertanyaan tentang pemakaian air:
-- Bulan dengan pemakaian tertinggi/terendah
-- Customer yang paling boros/hemat
-- Rata-rata pemakaian per bulan
-- Trend pemakaian dan pola musiman
-- Total pemakaian periode tertentu
-- Perbandingan antar customer
-- PROYEKSI/RAMALAN pemakaian masa depan (ambil data historis 1-2 tahun untuk analisis tren)
-- Prediksi konsumsi air tahun depan
-- Dan pertanyaan analitis lainnya
+Mengambil ringkasan pemakaian air per BULAN (data sudah diagregasi di database).
 
-AI HARUS menghitung sendiri dari data mentah.
-Untuk prediksi masa depan, gunakan data historis sebagai bahan analisis tren dan pola musiman.`,
+WAJIB gunakan untuk:
+- Pertanyaan tentang TREN pemakaian (naik/turun, pola musiman)
+- PREDIKSI/PROYEKSI/RAMALAN konsumsi masa depan
+- Analisis jangka panjang (> 1 bulan)
+- Perbandingan antar bulan/tahun
+- Pertanyaan: "bulan apa paling boros", "trend tahun ini", "proyeksi 2026"
+
+Data yang dikembalikan: 12-24 rows (sangat ringan!)
+Contoh: Total usage per bulan, rata-rata, max, min
+
+JANGAN gunakan fetch_readings_detail untuk pertanyaan ini!`,
         parameters: {
             type: 'object',
             properties: {
                 startDate: {
                     type: 'string',
-                    description: 'Tanggal mulai format YYYY-MM-DD. Untuk prediksi, ambil 1-2 tahun historis.'
+                    description: 'Tanggal mulai YYYY-MM-DD. Untuk prediksi, ambil 1-2 tahun historis.'
                 },
                 endDate: {
                     type: 'string',
-                    description: 'Tanggal akhir format YYYY-MM-DD. Default: hari ini.'
+                    description: 'Tanggal akhir YYYY-MM-DD. Default: hari ini.'
                 }
             },
             required: []
         }
     },
 
-    // ===== INVOICES (Tagihan) =====
     {
-        name: 'fetch_invoices',
-        description: `Mengambil data tagihan MENTAH.
+        name: 'fetch_invoices_summary',
+        description: `⭐ Gunakan untuk STATISTIK tagihan dan analisis pembayaran!
 
-Gunakan ini untuk SEMUA pertanyaan tentang tagihan:
-- Siapa yang nunggak/belum bayar
-- Total tagihan unpaid/paid
-- Tagihan overdue (lewat jatuh tempo)
-- Rata-rata tagihan per customer
-- Periode dengan tagihan tertinggi
-- Trend pembayaran
-- Dan pertanyaan analitis lainnya
+Mengambil ringkasan tagihan (status summary & monthly aggregation).
 
-AI HARUS menghitung sendiri dari data mentah.`,
+Gunakan untuk:
+- Total tagihan unpaid/paid/overdue
+- Statistik pembayaran per bulan
+- Analisis trend pembayaran
+
+Data yang dikembalikan: Summary object atau 12-24 rows
+Sangat efisien untuk pertanyaan statistik!`,
+        parameters: {
+            type: 'object',
+            properties: {
+                startDate: {
+                    type: 'string',
+                    description: 'Tanggal mulai YYYY-MM-DD (optional untuk monthly summary)'
+                },
+                endDate: {
+                    type: 'string',
+                    description: 'Tanggal akhir YYYY-MM-DD (optional)'
+                }
+            },
+            required: []
+        }
+    },
+
+    // ========== MICRO TOOLS (DETAIL - FOR SPECIFIC QUERIES) ==========
+
+    {
+        name: 'fetch_transactions_detail',
+        description: `Mengambil detail transaksi MENTAH (max 100 rows).
+
+Gunakan HANYA untuk:
+- Detail transaksi SPESIFIK (hari/minggu tertentu)
+- Rentang waktu PENDEK (< 7 hari)
+- Pertanyaan tentang transaksi tertentu
+- Contoh: "transaksi kemarin", "siapa yang bayar hari ini"
+
+PERINGATAN: 
+- Max 100 rows, data akan dipotong jika lebih
+- JANGAN gunakan untuk analisis > 1 bulan
+- Untuk tren/prediksi, WAJIB gunakan fetch_transactions_summary!`,
+        parameters: {
+            type: 'object',
+            properties: {
+                startDate: {
+                    type: 'string',
+                    description: 'Tanggal mulai YYYY-MM-DD'
+                },
+                endDate: {
+                    type: 'string',
+                    description: 'Tanggal akhir YYYY-MM-DD'
+                },
+                limit: {
+                    type: 'number',
+                    description: 'Max rows (default: 50, max: 100)'
+                }
+            },
+            required: []
+        }
+    },
+
+    {
+        name: 'fetch_readings_detail',
+        description: `Mengambil detail pencatatan meteran MENTAH (max 100 rows).
+
+Gunakan HANYA untuk:
+- Detail pencatatan SPESIFIK (hari/minggu tertentu)
+- Rentang waktu PENDEK (< 7 hari)
+- Customer tertentu (nama spesifik)
+- Contoh: "pencatatan Pak Anton minggu ini"
+
+PERINGATAN:
+- Max 100 rows, data akan dipotong jika lebih
+- JANGAN gunakan untuk analisis > 1 bulan
+- Untuk tren/prediksi, WAJIB gunakan fetch_readings_summary!`,
+        parameters: {
+            type: 'object',
+            properties: {
+                startDate: {
+                    type: 'string',
+                    description: 'Tanggal mulai YYYY-MM-DD'
+                },
+                endDate: {
+                    type: 'string',
+                    description: 'Tanggal akhir YYYY-MM-DD'
+                },
+                limit: {
+                    type: 'number',
+                    description: 'Max rows (default: 50, max: 100)'
+                }
+            },
+            required: []
+        }
+    },
+
+    {
+        name: 'fetch_invoices_detail',
+        description: `Mengambil detail tagihan MENTAH.
+
+Gunakan untuk:
+- Daftar customer yang nunggak (dengan nama)
+- Detail tagihan spesifik
+- Filter by status (Unpaid, Paid, Cancelled)
+
+Untuk statistik/summary, gunakan fetch_invoices_summary!`,
         parameters: {
             type: 'object',
             properties: {
                 status: {
                     type: 'string',
                     enum: ['Unpaid', 'Paid', 'Cancelled', null],
-                    description: 'Filter by status. Null untuk semua status.'
+                    description: 'Filter by status. Null untuk semua.'
                 },
                 startDate: {
                     type: 'string',
-                    description: 'Tanggal mulai format YYYY-MM-DD (optional)'
+                    description: 'Tanggal mulai YYYY-MM-DD (optional)'
                 },
                 endDate: {
                     type: 'string',
-                    description: 'Tanggal akhir format YYYY-MM-DD (optional)'
+                    description: 'Tanggal akhir YYYY-MM-DD (optional)'
                 }
             },
             required: []
         }
     },
 
-    // ===== CUSTOMERS (Pelanggan) =====
     {
         name: 'fetch_customers',
-        description: `Mengambil data pelanggan MENTAH.
+        description: `Mengambil data pelanggan.
 
-Gunakan ini untuk SEMUA pertanyaan tentang pelanggan:
+Gunakan untuk pertanyaan tentang customer:
 - Jumlah customer aktif/inactive
-- Customer dengan hutang terbanyak
-- Customer dengan deposit terbesar
-- Total hutang/deposit semua customer
+- Customer dengan hutang
 - Statistik customer
-- Dan pertanyaan analitis lainnya
 
-AI HARUS menghitung sendiri dari data mentah.`,
+AI harus menghitung sendiri dari data mentah.`,
         parameters: {
             type: 'object',
             properties: {},
@@ -130,43 +220,39 @@ AI HARUS menghitung sendiri dari data mentah.`,
         }
     },
 
-    // ===== COMPLAINTS (Keluhan) =====
     {
         name: 'fetch_complaints',
-        description: `Mengambil data keluhan MENTAH.
+        description: `Mengambil data keluhan.
 
-Gunakan ini untuk SEMUA pertanyaan tentang keluhan:
+Gunakan untuk pertanyaan tentang keluhan:
 - Jumlah keluhan open/resolved
 - Tipe keluhan terbanyak
-- Customer yang paling sering komplain
-- Trend keluhan
-- Dan pertanyaan analitis lainnya
+- Customer yang sering komplain
 
-AI HARUS menghitung sendiri dari data mentah.`,
+AI harus menghitung sendiri dari data mentah.`,
         parameters: {
             type: 'object',
             properties: {
                 status: {
                     type: 'string',
                     enum: ['Open', 'In Progress', 'Resolved', null],
-                    description: 'Filter by status. Null untuk semua status.'
+                    description: 'Filter by status. Null untuk semua.'
                 }
             },
             required: []
         }
     },
 
-    // ===== SYSTEM STATUS (Status Sistem) =====
     {
         name: 'get_system_status',
         description: `Mendapatkan status sistem (pompa air, saldo kas, pengaturan).
 
-Gunakan ini ketika admin bertanya tentang:
+Gunakan ketika admin bertanya tentang:
 - Status pompa (hidup/mati)
 - Saldo kas
 - Pengaturan sistem
 
-Data ini sudah dihitung di backend (bukan raw data).`,
+Data sudah dihitung di backend.`,
         parameters: {
             type: 'object',
             properties: {},

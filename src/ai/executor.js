@@ -1,9 +1,8 @@
-import { TOOL_REGISTRY, toolExists, getTool } from './tools.registry.js';
+import { TOOLS_REGISTRY, toolExists, getToolByName } from './tools.registry.js';
 
 /**
  * FUNCTION EXECUTOR
- * Menjalankan fungsi yang dipilih oleh AI Router
- * Handles parameter passing dan error handling
+ * Executes selected tool functions with proper parameter handling
  */
 
 /**
@@ -15,11 +14,11 @@ import { TOOL_REGISTRY, toolExists, getTool } from './tools.registry.js';
 export const executeFunction = async (toolName, params = {}) => {
     // Validate tool exists
     if (!toolExists(toolName)) {
-        throw new Error(`Tool "${ toolName }" not found in registry. Available tools: ${ Object.keys(TOOL_REGISTRY).join(', ') }`);
+        throw new Error(`Tool "${ toolName }" not found in registry. Available tools: ${ Object.keys(TOOLS_REGISTRY).join(', ') }`);
     }
 
     // Get the tool function
-    const toolFunction = getTool(toolName);
+    const toolFunction = getToolByName(toolName);
 
     try {
         // Execute the function with parameters
