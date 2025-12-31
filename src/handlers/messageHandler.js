@@ -1,4 +1,6 @@
 import { pingCommand, greetingCommand, infoCommand } from '../commands/index.js';
+import { isAdmin } from '../config/admin.config.js';
+import adminCommand from '../commands/admin.js';
 
 /**
  * Message Handler
@@ -13,6 +15,15 @@ const handleMessage = async (message, client) => {
 
     const msg = message.body.toLowerCase();
 
+    // ===== ADMIN AI ASSISTANT =====
+    // Jika pengirim adalah admin, route semua pesan ke AI Assistant
+    if (isAdmin(message.from)) {
+        console.log('[Permission] Admin detected, routing to AI Assistant');
+        await adminCommand(message, client);
+        return;
+    }
+
+    // ===== REGULAR COMMANDS (Non-Admin) =====
     // Route ke command yang sesuai
     if (msg === '!ping') {
         await pingCommand(message, client);
