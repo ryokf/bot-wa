@@ -1,41 +1,37 @@
 import supabase from '../config/supabase.config.js';
 
 /**
- * METER READINGS SERVICE (REFACTORED)
- * Hanya fetch data mentah - AI yang akan menghitung
+ * METER READINGS SERVICE (MICRO TOOL - DETAIL)
+ * Hanya fetch data mentah dengan HARD LIMIT
+ * Untuk pertanyaan detail spesifik jangka pendek
+ * 
+ * PERINGATAN: Max 100 rows untuk menghindari token explosion
  */
 
 /**
- * Fetch Readings (Raw Data)
- * Mengambil data pencatatan meteran mentah berdasarkan rentang waktu
- * AI akan melakukan analisis: usage tertinggi, terendah, rata-rata, trend, dll
+ * Fetch Readings (Raw Data with Limit)
+ * Mengambil data pencatatan meteran mentah dengan batasan
  * 
  * @param {string} startDate - Format: YYYY-MM-DD (optional)
  * @param {string} endDate - Format: YYYY-MM-DD (optional)
- * @returns {Promise<Array>} Raw meter reading data
+ * @param {number} limit - Max rows (default: 50, max: 100)
+ * @returns {Promise<Object>} { data, limited, message }
  */
-export const fetchReadings = async (startDate = null, endDate = null) => {
+export const fetchReadings = async (startDate = null, endDate = null, limit = 50) => {
+    // Hard limit: never more than 100 rows
+    const safeLimit = Math.min(limit, 100);
+
     let query = supabase
         .from('meter_readings')
         .select(`
-            id,
             period_month,
             period_year,
             reading_date,
-            previous_value,
-            current_value,
             usage_amount,
-            notes,
-            created_at,
-            customer:customers(
-                id,
-                name,
-                phone,
-                address,
-                meter_number
-            )
-        `)
-        .order('reading_date', { ascending: false });
+            customer:customers(name, phone, meter_number)
+        `)  // Only essential columns
+        .order('reading_date', { ascending: false })
+        .limit(safeLimit);
 
     // Apply date filters if provided
     if (startDate) {
@@ -48,7 +44,13 @@ export const fetchReadings = async (startDate = null, endDate = null) => {
     const { data, error } = await query;
 
     if (error) throw error;
-    return data || [];
+
+    return {
+        data: data || [],
+        limited: data?.length === safeLimit,
+        message: data?.length === safeLimit ?
+            'Data dipotong karena terlalu banyak. Gunakan rentang waktu lebih pendek atau gunakan summary tool untuk analisis tren.' : null
+    };
 };
 
 /**
@@ -56,42 +58,29 @@ export const fetchReadings = async (startDate = null, endDate = null) => {
  * Mengambil riwayat pencatatan meteran untuk customer tertentu
  * 
  * @param {string} customerId - UUID customer
- * @param {number} limit - Jumlah data (optional, default: all)
+ * @param {number} limit - Jumlah data (default: 12, max: 50)
  * @returns {Promise<Array>} Customer reading history
  */
-export const fetchReadingsByCustomer = async (customerId, limit = null) => {
-    let query = supabase
+export const fetchReadingsByCustomer = async (customerId, limit = 12) => {
+    const safeLimit = Math.min(limit, 50);
+
+    const { data, error } = await supabase
         .from('meter_readings')
-        .select('*')
+        .select('period_month, period_year, usage_amount, reading_date')
         .eq('customer_id', customerId)
         .order('period_year', { ascending: false })
-        .order('period_month', { ascending: false });
-
-    if (limit) {
-        query = query.limit(limit);
-    }
-
-    const { data, error } = await query;
+        .order('period_month', { ascending: false })
+        .limit(safeLimit);
 
     if (error) throw error;
     return data || [];
 };
 
 /**
- * Fetch All Readings
- * Mengambil SEMUA pencatatan meteran
- * 
- * @returns {Promise<Array>} All reading data
+ * Fetch All Readings (DEPRECATED - Use with caution)
+ * @deprecated Use fetchReadings with date range instead
  */
 export const fetchAllReadings = async () => {
-    const { data, error } = await supabase
-        .from('meter_readings')
-        .select(`
-            *,
-            customer:customers(name, phone, meter_number)
-        `)
-        .order('reading_date', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
+    console.warn('[DEPRECATED] fetchAllReadings: Use fetchReadings with date range instead');
+    return fetchReadings(null, null, 100);
 };

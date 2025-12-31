@@ -1,37 +1,38 @@
 import supabase from '../config/supabase.config.js';
 
 /**
- * TRANSACTIONS SERVICE (REFACTORED)
- * Hanya fetch data mentah - AI yang akan menghitung
+ * TRANSACTIONS SERVICE (MICRO TOOL - DETAIL)
+ * Hanya fetch data mentah dengan HARD LIMIT
+ * Untuk pertanyaan detail spesifik jangka pendek (< 7 hari)
+ * 
+ * PERINGATAN: Max 100 rows untuk menghindari token explosion
  */
 
 /**
- * Fetch Transactions (Raw Data)
- * Mengambil data transaksi mentah berdasarkan rentang waktu
- * AI akan melakukan semua perhitungan (sum, avg, max, min, group by, dll)
+ * Fetch Transactions (Raw Data with Limit)
+ * Mengambil data transaksi mentah dengan batasan
  * 
  * @param {string} startDate - Format: YYYY-MM-DD (optional)
  * @param {string} endDate - Format: YYYY-MM-DD (optional)
- * @returns {Promise<Array>} Raw transaction data
+ * @param {number} limit - Max rows (default: 50, max: 100)
+ * @returns {Promise<Object>} { data, limited, message }
  */
-export const fetchTransactions = async (startDate = null, endDate = null) => {
+export const fetchTransactions = async (startDate = null, endDate = null, limit = 50) => {
+    // Hard limit: never more than 100 rows
+    const safeLimit = Math.min(limit, 100);
+
     let query = supabase
         .from('transactions')
         .select(`
-            id,
+            transaction_date,
             type,
             category,
             amount,
             description,
-            transaction_date,
-            created_at,
-            customer:customers(
-                id,
-                name,
-                phone
-            )
-        `)
-        .order('transaction_date', { ascending: false });
+            customer:customers(name, phone)
+        `)  // Only essential columns, no IDs or timestamps
+        .order('transaction_date', { ascending: false })
+        .limit(safeLimit);
 
     // Apply date filters if provided
     if (startDate) {
@@ -44,22 +45,20 @@ export const fetchTransactions = async (startDate = null, endDate = null) => {
     const { data, error } = await query;
 
     if (error) throw error;
-    return data || [];
+
+    return {
+        data: data || [],
+        limited: data?.length === safeLimit,
+        message: data?.length === safeLimit ?
+            'Data dipotong karena terlalu banyak. Gunakan rentang waktu lebih pendek atau gunakan summary tool untuk analisis tren.' : null
+    };
 };
 
 /**
- * Fetch All Transactions
- * Mengambil SEMUA transaksi tanpa filter
- * Gunakan dengan hati-hati untuk dataset besar
- * 
- * @returns {Promise<Array>} All transaction data
+ * Fetch All Transactions (DEPRECATED - Use with caution)
+ * @deprecated Use fetchTransactions with date range instead
  */
 export const fetchAllTransactions = async () => {
-    const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('transaction_date', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
+    console.warn('[DEPRECATED] fetchAllTransactions: Use fetchTransactions with date range instead');
+    return fetchTransactions(null, null, 100);
 };
