@@ -1,7 +1,7 @@
 /**
- * FUNCTION SCHEMAS (REFACTORED)
+ * FUNCTION SCHEMAS (WITH FORECASTING SUPPORT)
  * Simplified catalog - AI melakukan semua perhitungan dari data mentah
- * Dari 14 tools → 6 main tools
+ * Mendukung analisis tren dan proyeksi masa depan
  */
 
 export const FUNCTION_SCHEMAS = [
@@ -14,22 +14,25 @@ Gunakan ini untuk SEMUA pertanyaan tentang keuangan:
 - Total pemasukan/pengeluaran
 - Bulan dengan pemasukan/pengeluaran tertinggi/terendah
 - Rata-rata transaksi
-- Trend keuangan
+- Trend keuangan dan analisis pola
 - Kategori pengeluaran terbesar
 - Profit/loss
+- PREDIKSI/PROYEKSI pendapatan masa depan (ambil data historis 1-2 tahun untuk analisis tren)
+- Ramalan keuangan tahun depan
 - Dan pertanyaan analitis lainnya
 
-AI HARUS menghitung sendiri dari data mentah (SUM, AVG, MAX, MIN, GROUP BY, dll).`,
+AI HARUS menghitung sendiri dari data mentah (SUM, AVG, MAX, MIN, GROUP BY, dll).
+Untuk prediksi masa depan, gunakan data historis sebagai bahan analisis tren.`,
         parameters: {
             type: 'object',
             properties: {
                 startDate: {
                     type: 'string',
-                    description: 'Tanggal mulai format YYYY-MM-DD. Default: 1 tahun lalu jika tidak disebutkan.'
+                    description: 'Tanggal mulai format YYYY-MM-DD. Untuk prediksi, ambil 1-2 tahun historis.'
                 },
                 endDate: {
                     type: 'string',
-                    description: 'Tanggal akhir format YYYY-MM-DD. Default: hari ini jika tidak disebutkan.'
+                    description: 'Tanggal akhir format YYYY-MM-DD. Default: hari ini.'
                 }
             },
             required: []
@@ -45,18 +48,21 @@ Gunakan ini untuk SEMUA pertanyaan tentang pemakaian air:
 - Bulan dengan pemakaian tertinggi/terendah
 - Customer yang paling boros/hemat
 - Rata-rata pemakaian per bulan
-- Trend pemakaian
+- Trend pemakaian dan pola musiman
 - Total pemakaian periode tertentu
 - Perbandingan antar customer
+- PROYEKSI/RAMALAN pemakaian masa depan (ambil data historis 1-2 tahun untuk analisis tren)
+- Prediksi konsumsi air tahun depan
 - Dan pertanyaan analitis lainnya
 
-AI HARUS menghitung sendiri dari data mentah.`,
+AI HARUS menghitung sendiri dari data mentah.
+Untuk prediksi masa depan, gunakan data historis sebagai bahan analisis tren dan pola musiman.`,
         parameters: {
             type: 'object',
             properties: {
                 startDate: {
                     type: 'string',
-                    description: 'Tanggal mulai format YYYY-MM-DD. Default: 1 tahun lalu.'
+                    description: 'Tanggal mulai format YYYY-MM-DD. Untuk prediksi, ambil 1-2 tahun historis.'
                 },
                 endDate: {
                     type: 'string',
@@ -78,6 +84,7 @@ Gunakan ini untuk SEMUA pertanyaan tentang tagihan:
 - Tagihan overdue (lewat jatuh tempo)
 - Rata-rata tagihan per customer
 - Periode dengan tagihan tertinggi
+- Trend pembayaran
 - Dan pertanyaan analitis lainnya
 
 AI HARUS menghitung sendiri dari data mentah.`,

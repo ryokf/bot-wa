@@ -92,7 +92,7 @@ Berikan insight atau rekomendasi jika relevan.
 // await testAdminCommand("Berapa total pemasukan bulan ini?");
 
 // 3. Pertanyaan tentang pemakaian air
-await testAdminCommand("Bulan apa pemakaian air paling tinggi tahun ini?");
+await testAdminCommand("Berikan saya proyeksi data kedepan pada tahun 2026");
 
 // 4. Pertanyaan tentang customer
 // await testAdminCommand("Berapa jumlah customer yang punya hutang?");
