@@ -3,12 +3,14 @@
  * Fungsi ini membuat jeda waktu acak antara min dan max milidetik
  * Tujuannya agar pola balasan tidak robotik (selalu instan)
  * 
- * @param {number} min - Minimum delay dalam milidetik
- * @param {number} max - Maximum delay dalam milidetik
+ * @param {number} min - Minimum delay dalam milidetik (default dari .env)
+ * @param {number} max - Maximum delay dalam milidetik (default dari .env)
  * @returns {Promise} Promise yang resolve setelah delay acak
  */
-const randomDelay = (min, max) => {
-    return new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * (max - min + 1) + min)));
+const randomDelay = (min = null, max = null) => {
+    const minDelay = min || parseInt(process.env.MIN_DELAY) || 1500;
+    const maxDelay = max || parseInt(process.env.MAX_DELAY) || 4000;
+    return new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay)));
 };
 
 /**
@@ -28,9 +30,8 @@ const replyHumanlike = async (message, client, textResponse, isReply = true) => 
         // 1. Aktifkan indikator "Sedang mengetik..." di HP lawan bicara
         await chat.sendStateTyping();
 
-        // 2. Delay acak antara 1.5 detik sampai 4 detik
-        // (Semakin panjang teks, harusnya delay semakin lama, tapi ini simulasi dasar)
-        await randomDelay(1500, 4000);
+        // 2. Delay acak menggunakan nilai dari .env (MIN_DELAY dan MAX_DELAY)
+        await randomDelay();
 
         // 3. Kirim pesan
         if (isReply) {

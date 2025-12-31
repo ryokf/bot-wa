@@ -50,13 +50,35 @@ cd bot-wa
 npm install
 ```
 
-3. Jalankan bot:
+3. Setup environment variables:
+
+```bash
+# Copy .env.example ke .env
+cp .env.example .env
+
+# Edit .env dan sesuaikan dengan sistem Anda
+# Terutama CHROME_PATH jika berbeda
+```
+
+4. Jalankan bot:
 
 ```bash
 node src/index.js
 ```
 
-4. Scan QR Code yang muncul di terminal dengan WhatsApp Anda
+5. Scan QR Code yang muncul di terminal dengan WhatsApp Anda
+
+## ⚙️ Environment Variables
+
+Konfigurasi bot dapat diatur melalui file `.env`:
+
+| Variable      | Deskripsi                                   | Default                                                        |
+| ------------- | ------------------------------------------- | -------------------------------------------------------------- |
+| `CHROME_PATH` | Path ke Chrome/Chromium executable          | `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` |
+| `HEADLESS`    | Jalankan browser dalam mode headless        | `true`                                                         |
+| `MIN_DELAY`   | Minimum delay untuk humanlike response (ms) | `1500`                                                         |
+| `MAX_DELAY`   | Maximum delay untuk humanlike response (ms) | `4000`                                                         |
+| `USER_AGENT`  | User agent untuk anti-ban                   | Chrome Mac User Agent                                          |
 
 ## ➕ Menambahkan Command Baru
 

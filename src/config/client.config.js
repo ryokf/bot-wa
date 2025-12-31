@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { Client, LocalAuth } = require('whatsapp-web.js');
 
 /**
@@ -8,15 +9,15 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const clientConfig = {
     authStrategy: new LocalAuth(),
     puppeteer: {
-        // Path Chrome M1 (sesuaikan dengan sistem Anda)
-        executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        // Path Chrome dari environment variable
+        executablePath: process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
 
-        headless: true,
+        headless: process.env.HEADLESS === 'true',
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            // ANTI-BAN: Menggunakan User Agent Chrome Mac asli agar tidak terdeteksi sebagai "HeadlessChrome"
-            '--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            // ANTI-BAN: Menggunakan User Agent dari environment variable
+            `--user-agent=${ process.env.USER_AGENT || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }`
         ]
     }
 };
